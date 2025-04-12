@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { GameItem } from "../App";
 
 interface RankingPhaseProps {
@@ -15,21 +15,88 @@ export function RankingPhase({
   onBack,
 }: RankingPhaseProps) {
   const [rankings, setRankings] = useState<GameItem[]>([...items]);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Check if user is on mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    
+    return () => {
+      window.removeEventListener("resize", checkMobile);
+    };
+  }, []);
+
+  // Universal drag handlers (for both desktop and mobile)
   const handleDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData("text/plain", index.toString());
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingIndex(index);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    
+    if (draggingIndex !== null && draggingIndex !== index) {
+      moveItem(draggingIndex, index);
+      setDraggingIndex(index);
+    }
   };
 
-  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    const sourceIndex = parseInt(e.dataTransfer.getData("text/plain"));
+  const handleDragEnd = () => {
+    setDraggingIndex(null);
+  };
+
+  // For mobile touch-based drag
+  const handleTouchStart = (e: React.TouchEvent, index: number) => {
+    setDraggingIndex(index);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (draggingIndex === null) return;
+    
+    const touch = e.touches[0];
+    const elements = itemsRef.current.filter(el => el !== null);
+    
+    // Find the element under the touch point
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i];
+      if (!el) continue;
+      
+      const rect = el.getBoundingClientRect();
+      if (
+        touch.clientY >= rect.top &&
+        touch.clientY <= rect.bottom &&
+        touch.clientX >= rect.left &&
+        touch.clientX <= rect.right
+      ) {
+        if (i !== draggingIndex) {
+          moveItem(draggingIndex, i);
+          setDraggingIndex(i);
+        }
+        break;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setDraggingIndex(null);
+  };
+
+  // Shared item movement logic
+  const moveItem = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= rankings.length || fromIndex === toIndex) return;
+    
     const newRankings = [...rankings];
-    const [removed] = newRankings.splice(sourceIndex, 1);
-    newRankings.splice(targetIndex, 0, removed);
+    const [removed] = newRankings.splice(fromIndex, 1);
+    newRankings.splice(toIndex, 0, removed);
     setRankings(newRankings);
   };
 
@@ -47,23 +114,35 @@ export function RankingPhase({
         <h2 className="text-2xl font-bold text-white">{theme}</h2>
         <p className="text-white/80">項目を並べ替えて順位を決めてください</p>
         <p className="text-sm text-white/70">（1位が最も重要）</p>
+        <p className="text-xs text-white/60 mt-1">
+          項目をドラッグして順位を入れ替えられます
+        </p>
       </div>
 
       <div className="space-y-2">
         {rankings.map((item, index) => (
           <div
             key={item.id}
-            draggable
+            ref={el => itemsRef.current[index] = el}
+            draggable={true}
             onDragStart={(e) => handleDragStart(e, index)}
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, index)}
-            className="p-3 bg-white/5 border border-white/10 rounded-md cursor-move hover:bg-white/10 transition-colors"
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDragEnd={handleDragEnd}
+            onTouchStart={(e) => handleTouchStart(e, index)}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className={`p-3 border rounded-md transition-colors ${
+              draggingIndex === index 
+                ? 'bg-white/20 border-white/30' 
+                : 'bg-white/5 border-white/10 hover:bg-white/10'
+            }`}
+            style={{ touchAction: 'none', cursor: 'grab' }}
           >
             <div className="flex items-center gap-3">
-              <span className="text-xl font-bold text-white/60">
+              <span className="text-xl font-bold text-white/60 min-w-6 text-center">
                 {index + 1}
               </span>
-              <span className="text-white text-sm">{item.text}</span>
+              <span className="text-white text-sm flex-grow">{item.text}</span>
             </div>
           </div>
         ))}
