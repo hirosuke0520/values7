@@ -15,9 +15,13 @@ function App() {
   const [items, setItems] = useState<GameItem[]>([]);
   const [rankings, setRankings] = useState<RankingMap>({});
   const [revealedCards, setRevealedCards] = useState<number[]>([]);
+  const [savedTheme, setSavedTheme] = useState('');
+  const [savedItems, setSavedItems] = useState<string[]>([]);
 
   const handleGameSetup = (newTheme: string, newItems: string[]) => {
     setTheme(newTheme);
+    setSavedTheme(newTheme);
+    setSavedItems(newItems);
     setItems(newItems.map((text, index) => ({ id: index + 1, text })));
     setPhase('ranking');
   };
@@ -38,21 +42,36 @@ function App() {
   const handleRestart = () => {
     setPhase('setup');
     setTheme('');
+    setSavedTheme('');
     setItems([]);
+    setSavedItems([]);
     setRankings({});
     setRevealedCards([]);
+  };
+
+  const handleBack = () => {
+    if (phase === 'ranking') {
+      setPhase('setup');
+    } else if (phase === 'guessing') {
+      setPhase('ranking');
+    }
   };
 
   return (
     <Layout>
       {phase === 'setup' && (
-        <GameSetup onComplete={handleGameSetup} />
+        <GameSetup 
+          onComplete={handleGameSetup}
+          initialTheme={savedTheme}
+          initialItems={savedItems}
+        />
       )}
       {phase === 'ranking' && (
         <RankingPhase
           theme={theme}
           items={items}
           onComplete={handleRankingComplete}
+          onBack={handleBack}
         />
       )}
       {phase === 'guessing' && (
@@ -62,6 +81,7 @@ function App() {
           rankings={rankings}
           revealedCards={revealedCards}
           onCardReveal={handleCardReveal}
+          onBack={handleBack}
         />
       )}
       {phase === 'result' && (
