@@ -24,11 +24,11 @@ export function GuessPhase({
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-white">{theme}</h2>
-        <p className="text-white/80">Click on cards to reveal them</p>
+        <h2 className="text-2xl font-bold text-white">{theme}</h2>
+        <p className="text-white/80">タップしてカードを公開</p>
       </div>
 
-      <div className="grid grid-cols-7 gap-4">
+      <div className="grid grid-cols-4 gap-2">
         {Array.from({ length: 7 }, (_, i) => i + 1).map((rank) => {
           const isRevealed = revealedCards.includes(rank);
           const item = getItemByRank(rank);
@@ -39,7 +39,9 @@ export function GuessPhase({
               onClick={() => !isRevealed && onCardReveal(rank)}
               disabled={isRevealed}
               className={`
-                aspect-[2/3] rounded-lg p-4 flex items-center justify-center text-center
+                aspect-[2/3] rounded-lg p-2 flex items-center justify-center text-center
+                ${rank > 4 ? 'col-span-2' : ''}
+                ${rank === 7 ? 'col-start-2' : ''}
                 ${isRevealed
                   ? 'bg-white/20 border-white/30'
                   : 'bg-gradient-to-br from-blue-500 to-purple-600 cursor-pointer hover:from-blue-600 hover:to-purple-700'
@@ -48,9 +50,9 @@ export function GuessPhase({
               `}
             >
               {isRevealed ? (
-                <div className="space-y-2">
-                  <div className="text-3xl font-bold text-white">{rank}</div>
-                  <div className="text-sm text-white/80">{item?.text}</div>
+                <div className="space-y-1">
+                  <div className="text-2xl font-bold text-white">{rank}</div>
+                  <div className="text-xs text-white/80">{item?.text}</div>
                 </div>
               ) : (
                 <div className="text-white text-opacity-0">?</div>
@@ -60,11 +62,11 @@ export function GuessPhase({
         })}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-2">
         {items.map((item) => (
           <div
             key={item.id}
-            className="p-3 bg-white/5 border border-white/10 rounded-md text-white text-center"
+            className="p-2 bg-white/5 border border-white/10 rounded-md text-white text-center text-sm"
           >
             {item.text}
           </div>

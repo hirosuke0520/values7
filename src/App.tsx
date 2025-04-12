@@ -24,14 +24,13 @@ function App() {
 
   const handleRankingComplete = (newRankings: RankingMap) => {
     setRankings(newRankings);
-    // Automatically reveal the middle card (4th position)
-    setRevealedCards([4]);
+    setRevealedCards([]); // Start with no cards revealed
     setPhase('guessing');
   };
 
   const handleCardReveal = (rank: number) => {
     setRevealedCards([...revealedCards, rank]);
-    if (revealedCards.length + 1 === 6) { // All cards revealed (7 total - 1 initial)
+    if (revealedCards.length + 1 === 7) { // All cards revealed
       setPhase('result');
     }
   };

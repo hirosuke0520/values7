@@ -38,8 +38,9 @@ export function RankingPhase({ theme, items, onComplete }: RankingPhaseProps) {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-white">{theme}</h2>
-        <p className="text-white/80">Drag and drop items to rank them from most important (1) to least important (7)</p>
+        <h2 className="text-2xl font-bold text-white">{theme}</h2>
+        <p className="text-white/80">項目を並べ替えて順位を決めてください</p>
+        <p className="text-sm text-white/60">（1位が最も重要）</p>
       </div>
 
       <div className="space-y-2">
@@ -50,11 +51,11 @@ export function RankingPhase({ theme, items, onComplete }: RankingPhaseProps) {
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, index)}
-            className="p-4 bg-white/5 border border-white/10 rounded-md cursor-move hover:bg-white/10 transition-colors"
+            className="p-3 bg-white/5 border border-white/10 rounded-md cursor-move hover:bg-white/10 transition-colors"
           >
-            <div className="flex items-center gap-4">
-              <span className="text-2xl font-bold text-white/60">{index + 1}</span>
-              <span className="text-white">{item.text}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-white/60">{index + 1}</span>
+              <span className="text-white text-sm">{item.text}</span>
             </div>
           </div>
         ))}
@@ -64,7 +65,7 @@ export function RankingPhase({ theme, items, onComplete }: RankingPhaseProps) {
         onClick={handleSubmit}
         className="w-full py-3 px-4 rounded-md bg-white/20 hover:bg-white/30 text-white font-medium transition-colors"
       >
-        Confirm Rankings
+        順位を確定
       </button>
     </div>
   );
