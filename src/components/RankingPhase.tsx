@@ -24,10 +24,10 @@ export function RankingPhase({
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
-    
+
     return () => {
       window.removeEventListener("resize", checkMobile);
     };
@@ -43,7 +43,7 @@ export function RankingPhase({
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    
+
     if (draggingIndex !== null && draggingIndex !== index) {
       moveItem(draggingIndex, index);
       setDraggingIndex(index);
@@ -61,15 +61,15 @@ export function RankingPhase({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (draggingIndex === null) return;
-    
+
     const touch = e.touches[0];
-    const elements = itemsRef.current.filter(el => el !== null);
-    
+    const elements = itemsRef.current.filter((el) => el !== null);
+
     // Find the element under the touch point
     for (let i = 0; i < elements.length; i++) {
       const el = elements[i];
       if (!el) continue;
-      
+
       const rect = el.getBoundingClientRect();
       if (
         touch.clientY >= rect.top &&
@@ -92,8 +92,9 @@ export function RankingPhase({
 
   // Shared item movement logic
   const moveItem = (fromIndex: number, toIndex: number) => {
-    if (toIndex < 0 || toIndex >= rankings.length || fromIndex === toIndex) return;
-    
+    if (toIndex < 0 || toIndex >= rankings.length || fromIndex === toIndex)
+      return;
+
     const newRankings = [...rankings];
     const [removed] = newRankings.splice(fromIndex, 1);
     newRankings.splice(toIndex, 0, removed);
@@ -123,7 +124,7 @@ export function RankingPhase({
         {rankings.map((item, index) => (
           <div
             key={item.id}
-            ref={el => itemsRef.current[index] = el}
+            ref={(el) => (itemsRef.current[index] = el)}
             draggable={true}
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e, index)}
@@ -132,11 +133,11 @@ export function RankingPhase({
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             className={`p-3 border rounded-md transition-colors ${
-              draggingIndex === index 
-                ? 'bg-white/20 border-white/30' 
-                : 'bg-white/5 border-white/10 hover:bg-white/10'
+              draggingIndex === index
+                ? "bg-white/20 border-white/30"
+                : "bg-white/5 border-white/10 hover:bg-white/10"
             }`}
-            style={{ touchAction: 'none', cursor: 'grab' }}
+            style={{ touchAction: "none", cursor: "grab" }}
           >
             <div className="flex items-center gap-3">
               <span className="text-xl font-bold text-white/60 min-w-6 text-center">
@@ -161,7 +162,7 @@ export function RankingPhase({
           onClick={handleSubmit}
           className="py-3 px-4 rounded-md bg-white/20 hover:bg-white/30 text-white font-medium transition-colors"
         >
-          順位を確定
+          ゲームスタート
         </button>
       </div>
     </div>
