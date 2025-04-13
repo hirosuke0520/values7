@@ -1,5 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import type { GameItem } from "../App";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface RankingPhaseProps {
   theme: string;
@@ -7,6 +26,50 @@ interface RankingPhaseProps {
   onComplete: (rankings: { [key: number]: number }) => void;
   onBack?: () => void;
 }
+
+interface SortableItemProps {
+  item: GameItem;
+  index: number;
+}
+
+// ソート可能なアイテムコンポーネント
+const SortableItem = ({ item, index }: SortableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    cursor: isDragging ? 'grabbing' : 'grab'
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`p-3 border rounded-md transition-colors ${
+        isDragging
+          ? "bg-white/20 border-white/30 z-10"
+          : "bg-white/5 border-white/10 hover:bg-white/10"
+      }`}
+      {...attributes}
+      {...listeners}
+    >
+      <div className="flex items-center gap-3">
+        <span className="text-xl font-bold text-white/60 min-w-6 text-center">
+          {index + 1}
+        </span>
+        <span className="text-white text-sm flex-grow">{item.text}</span>
+      </div>
+    </div>
+  );
+};
 
 export function RankingPhase({
   theme,
@@ -16,8 +79,6 @@ export function RankingPhase({
 }: RankingPhaseProps) {
   const [rankings, setRankings] = useState<GameItem[]>([...items]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
-  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   // Check if user is on mobile device
   useEffect(() => {
@@ -33,72 +94,40 @@ export function RankingPhase({
     };
   }, []);
 
-  // Universal drag handlers (for both desktop and mobile)
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    e.dataTransfer.setData("text/plain", index.toString());
-    e.dataTransfer.effectAllowed = "move";
-    setDraggingIndex(index);
-  };
+  // ドラッグ＆ドロップセンサー - モバイルとデスクトップの両方に最適化
+  const sensors = useSensors(
+    // ポインタセンサー（マウス、タッチパッド）
+    useSensor(PointerSensor, {
+      // 少し距離を短くして、よりすぐに反応するように
+      activationConstraint: {
+        distance: 3,
+      },
+    }),
+    // タッチセンサー（モバイル）
+    useSensor(TouchSensor, {
+      // 遅延を短くして素早く反応
+      activationConstraint: {
+        delay: 100,
+        tolerance: 8, // 許容誤差を増やして誤操作を減らす
+      },
+    }),
+    // キーボードセンサー（アクセシビリティ対応）
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+  // ドラッグ終了時のハンドラ
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    if (draggingIndex !== null && draggingIndex !== index) {
-      moveItem(draggingIndex, index);
-      setDraggingIndex(index);
+    if (over && active.id !== over.id) {
+      setRankings((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
     }
-  };
-
-  const handleDragEnd = () => {
-    setDraggingIndex(null);
-  };
-
-  // For mobile touch-based drag
-  const handleTouchStart = (e: React.TouchEvent, index: number) => {
-    setDraggingIndex(index);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (draggingIndex === null) return;
-
-    const touch = e.touches[0];
-    const elements = itemsRef.current.filter((el) => el !== null);
-
-    // Find the element under the touch point
-    for (let i = 0; i < elements.length; i++) {
-      const el = elements[i];
-      if (!el) continue;
-
-      const rect = el.getBoundingClientRect();
-      if (
-        touch.clientY >= rect.top &&
-        touch.clientY <= rect.bottom &&
-        touch.clientX >= rect.left &&
-        touch.clientX <= rect.right
-      ) {
-        if (i !== draggingIndex) {
-          moveItem(draggingIndex, i);
-          setDraggingIndex(i);
-        }
-        break;
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setDraggingIndex(null);
-  };
-
-  // Shared item movement logic
-  const moveItem = (fromIndex: number, toIndex: number) => {
-    if (toIndex < 0 || toIndex >= rankings.length || fromIndex === toIndex)
-      return;
-
-    const newRankings = [...rankings];
-    const [removed] = newRankings.splice(fromIndex, 1);
-    newRankings.splice(toIndex, 0, removed);
-    setRankings(newRankings);
   };
 
   const handleSubmit = () => {
@@ -120,34 +149,27 @@ export function RankingPhase({
         </p>
       </div>
 
-      <div className="space-y-2">
-        {rankings.map((item, index) => (
-          <div
-            key={item.id}
-            ref={(el) => (itemsRef.current[index] = el)}
-            draggable={true}
-            onDragStart={(e) => handleDragStart(e, index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragEnd={handleDragEnd}
-            onTouchStart={(e) => handleTouchStart(e, index)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            className={`p-3 border rounded-md transition-colors ${
-              draggingIndex === index
-                ? "bg-white/20 border-white/30"
-                : "bg-white/5 border-white/10 hover:bg-white/10"
-            }`}
-            style={{ touchAction: "none", cursor: "grab" }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl font-bold text-white/60 min-w-6 text-center">
-                {index + 1}
-              </span>
-              <span className="text-white text-sm flex-grow">{item.text}</span>
-            </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        modifiers={[restrictToVerticalAxis]}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={rankings.map(item => item.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-2">
+            {rankings.map((item, index) => (
+              <SortableItem
+                key={item.id}
+                item={item}
+                index={index}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       <div className="grid grid-cols-2 gap-3">
         {onBack && (
