@@ -5,6 +5,7 @@ interface GuessPhaseProps {
   theme: string;
   items: GameItem[];
   rankings: { [key: number]: number };
+  weights?: { [key: number]: number }; // 残しておくがオプショナルに
   revealedCards: number[];
   onCardReveal: (rank: number) => void;
   onBack?: () => void;
@@ -14,6 +15,7 @@ export function GuessPhase({
   theme,
   items,
   rankings,
+  weights,
   revealedCards,
   onCardReveal,
   onBack,
@@ -31,7 +33,7 @@ export function GuessPhase({
         <p className="text-sm text-white/70">（1位が最も重要）</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {items.map((item) => (
           <div
             key={item.id}

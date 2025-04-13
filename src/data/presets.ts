@@ -5,18 +5,27 @@ export interface ThemePreset {
 
 export interface ItemsPreset {
   themeId: string;
-  items: string[];
+  items: string[]; // 7つの項目を想定
 }
 
 export const themePresets: ThemePreset[] = [
   {
+    id: "nishida_ideal_partner",
+    title: "【動画ネタ】好きな人に求めるモノ", // 既存の 'ideal_partner' を置き換え
+  },
+  {
+    id: "saaya_dislike_kouhai",
+    title: "【動画ネタ】可愛がりたくない後輩", // 新規追加
+  },
+  // --- 以下、元のプリセット例 ---
+  {
     id: "life_values",
     title: "人生の価値観",
   },
-  {
-    id: "ideal_partner",
-    title: "理想の恋人の条件",
-  },
+  // { // 元の 'ideal_partner' は置き換えたためコメントアウト
+  //   id: "ideal_partner",
+  //   title: "理想の恋人の条件",
+  // },
   {
     id: "travel_priorities",
     title: "旅行先の優先条件",
@@ -41,6 +50,31 @@ export const themePresets: ThemePreset[] = [
 
 export const itemsPresets: ItemsPreset[] = [
   {
+    themeId: "nishida_ideal_partner", // 既存の 'ideal_partner' を置き換え
+    items: [
+      "顔",
+      "性格",
+      "スタイル",
+      "体の相性",
+      "面白さ",
+      "ファッションセンス",
+      "家庭的",
+    ],
+  },
+  {
+    themeId: "saaya_dislike_kouhai", // 新規追加
+    items: [
+      "酔うと必ず失礼な態度をとる",
+      "借金が100万円ある",
+      "2回に1回寝坊する",
+      "すぐ嘘をつく",
+      "的外れなツッコミをよくする",
+      "異性にとことん好かれない",
+      "バイトを5回クビになった",
+    ],
+  },
+  // --- 以下、元のプリセット例 ---
+  {
     themeId: "life_values",
     items: [
       "健康",
@@ -52,18 +86,18 @@ export const itemsPresets: ItemsPreset[] = [
       "自己成長",
     ],
   },
-  {
-    themeId: "ideal_partner",
-    items: [
-      "外見",
-      "性格",
-      "価値観の一致",
-      "経済力",
-      "共通の趣味",
-      "家族との関係",
-      "コミュニケーション能力",
-    ],
-  },
+  // { // 元の 'ideal_partner' は置き換えたためコメントアウト
+  //   themeId: "ideal_partner",
+  //   items: [
+  //     "外見",
+  //     "性格",
+  //     "価値観の一致",
+  //     "経済力",
+  //     "共通の趣味",
+  //     "家族との関係",
+  //     "コミュニケーション能力",
+  //   ],
+  // },
   {
     themeId: "travel_priorities",
     items: [
@@ -113,5 +147,11 @@ export const itemsPresets: ItemsPreset[] = [
 // テーマIDから対応するアイテムリストを取得する関数
 export function getItemsForTheme(themeId: string): string[] {
   const preset = itemsPresets.find((p) => p.themeId === themeId);
-  return preset ? preset.items : [];
+  return preset ? preset.items : []; // 見つからない場合は空配列を返す
+}
+
+// (任意) テーマIDに対応するテーマタイトルを取得する関数
+export function getThemeTitleById(themeId: string): string | undefined {
+  const theme = themePresets.find((t) => t.id === themeId);
+  return theme ? theme.title : undefined;
 }

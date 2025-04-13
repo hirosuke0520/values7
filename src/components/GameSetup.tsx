@@ -12,7 +12,7 @@ export function GameSetup({
   initialTheme = "",
   initialItems = [],
 }: GameSetupProps) {
-  const [mode, setMode] = useState<"custom" | "preset">("custom");
+  const [mode, setMode] = useState<"custom" | "preset">("preset");
   const [theme, setTheme] = useState(initialTheme);
   const [items, setItems] = useState<string[]>(
     initialItems.length === 7 ? initialItems : Array(7).fill("")
