@@ -46,7 +46,8 @@ const SortableItem = ({ item, index }: SortableItemProps) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    cursor: isDragging ? 'grabbing' : 'grab'
+    cursor: isDragging ? 'grabbing' : 'grab',
+    touchAction: 'none' // タッチデバイスでスクロールとの競合を防ぐ
   };
 
   return (
@@ -62,6 +63,8 @@ const SortableItem = ({ item, index }: SortableItemProps) => {
       {...listeners}
     >
       <div className="flex items-center gap-3">
+        {/* ドラッグハンドルアイコン */}
+        <span className="text-white/50 select-none text-lg mr-1">⁝⁝</span>
         <span className="text-xl font-bold text-white/60 min-w-6 text-center">
           {index + 1}
         </span>
@@ -100,15 +103,15 @@ export function RankingPhase({
     useSensor(PointerSensor, {
       // 少し距離を短くして、よりすぐに反応するように
       activationConstraint: {
-        distance: 3,
+        distance: 1, // 最小限の移動でドラッグ開始（反応性を向上）
       },
     }),
     // タッチセンサー（モバイル）
     useSensor(TouchSensor, {
-      // 遅延を短くして素早く反応
+      // モバイルでのスクロールとの競合を防ぐための設定
       activationConstraint: {
-        delay: 100,
-        tolerance: 8, // 許容誤差を増やして誤操作を減らす
+        delay: 0, // 遅延なし - 即座にドラッグ開始
+        tolerance: 15, // 許容誤差を増やしてドラッグ認識を優先
       },
     }),
     // キーボードセンサー（アクセシビリティ対応）

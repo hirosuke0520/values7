@@ -50,7 +50,8 @@ const SortableItem = ({ item, index }: SortableItemProps) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    cursor: isDragging ? 'grabbing' : 'grab'
+    cursor: isDragging ? "grabbing" : "grab",
+    touchAction: "none", // タッチデバイスでスクロールとの競合を防ぐ
   };
 
   return (
@@ -108,15 +109,15 @@ export function WeightingPhase({
     useSensor(PointerSensor, {
       // 少し距離を短くして、よりすぐに反応するように
       activationConstraint: {
-        distance: 3,
+        distance: 1, // 最小限の移動でドラッグ開始（反応性を向上）
       },
     }),
     // タッチセンサー（モバイル）
     useSensor(TouchSensor, {
-      // 遅延を短くして素早く反応
+      // モバイルでのスクロールとの競合を防ぐための設定
       activationConstraint: {
-        delay: 100,
-        tolerance: 8, // 許容誤差を増やして誤操作を減らす
+        delay: 0, // 遅延なし - 即座にドラッグ開始
+        tolerance: 15, // 許容誤差を増やしてドラッグ認識を優先
       },
     }),
     // キーボードセンサー（アクセシビリティ対応）
@@ -148,7 +149,7 @@ export function WeightingPhase({
     sortedItems.forEach((item, index) => {
       // 順位は上から順に（1位, 2位, ...）
       calculatedRankings[item.id] = index + 1;
-      
+
       // 重みは順位に反比例（7項目の場合、1位:100, 2位:83, 3位:67, 4位:50, 5位:33, 6位:17, 7位:0）
       const totalItems = sortedItems.length;
       if (totalItems <= 1) {
@@ -181,16 +182,12 @@ export function WeightingPhase({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={sortedItems.map(item => item.id)}
+          items={sortedItems.map((item) => item.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2">
             {sortedItems.map((item, index) => (
-              <SortableItem
-                key={item.id}
-                item={item}
-                index={index}
-              />
+              <SortableItem key={item.id} item={item} index={index} />
             ))}
           </div>
         </SortableContext>
