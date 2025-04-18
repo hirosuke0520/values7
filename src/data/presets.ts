@@ -11,11 +11,11 @@ export interface ItemsPreset {
 export const themePresets: ThemePreset[] = [
   {
     id: "nishida_ideal_partner",
-    title: "【動画ネタ】好きな人に求めるモノ", // 既存の 'ideal_partner' を置き換え
+    title: "好きな人に求めるモノ", // 既存の 'ideal_partner' を置き換え
   },
   {
     id: "saaya_dislike_kouhai",
-    title: "【動画ネタ】可愛がりたくない後輩", // 新規追加
+    title: "可愛がりたくない後輩", // 新規追加
   },
   // --- 以下、元のプリセット例 ---
   {
